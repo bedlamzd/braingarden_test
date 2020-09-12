@@ -6,6 +6,7 @@ import numpy as np
 
 class Movable:
     def __init__(self, x0, y0, vx0, vy0, color):
+        # TODO: consider a link to a scene
         self.x = x0
         self.y = y0
         self.vx = vx0
@@ -28,6 +29,8 @@ class Circle(Movable):
     def draw(self, img: np.ndarray):
         cv2.circle(img, (int(self.x), int(self.y)), self.radius, self.color, -1)
 
+    def out_of_scene(self, scene: 'Scene'):
+        return (self.x > scene.width or self.x < 0) or (self.y > scene.height or self.y < 0)
 
 class Plane(Movable):
     def __init__(self, length, width, color, x0, y0, vy0=0):
@@ -45,6 +48,12 @@ class Plane(Movable):
 
     def circle_catched(self, circle: Circle):
         return (circle.x + circle.radius) >= self.x and (self.y - self.length) <= circle.y <= self.y
+
+    def estimate_position(self, imgs):
+        # TODO: use imgs to find 3 (or 2 if count launch point) different positions of a circle
+        #       and find parabola using this points
+        #       maybe use specific class to track circle and reliably find positions
+        pass
 
     def draw(self, img: np.ndarray):
         cv2.rectangle(img, (int(self.x), int(self.y)), (int(self.x + self.width), int(self.y + self.length)),
@@ -112,8 +121,8 @@ class Canon(Movable):
 
 
 class Scene:
-    def __init__(self, height, width, canon: Canon, plane: Plane, window_name='Scene', vg=0, delay=25):
-        self.shape = (height, width, 3)
+    def __init__(self, height, width, canon: Canon, plane: Plane, window_name='Scene', vg=.0, delay=25):
+        self.shape = [height, width, 3]
         self.canon = canon
         self.circle = canon.shoot()
         self.plane = plane
@@ -125,12 +134,33 @@ class Scene:
         cv2.createTrackbar('canon angle', self.window_name, -np.degrees(self.canon.angle).astype(np.int), 15,
                            lambda angle: self.canon.set_angle(-np.radians(angle)))
 
+    @property
+    def height(self):
+        return self.shape[0]
+
+    @height.setter
+    def height(self, val):
+        self.shape[0] = val
+        self.img = np.zeros(self.shape)
+
+    @property
+    def width(self):
+        return self.shape[1]
+
+    @width.setter
+    def width(self, val):
+        self.shape[1] = val
+        self.img = np.zeros(self.shape, dtype=np.uint8)
+
+    def clear_img(self):
+        self.img = np.zeros(self.shape)
+
     def update(self):
+        self.clear_img()
         self.circle.update_position()
         self.plane.update_position()
 
     def show(self):
-        self.img = np.zeros(self.shape)
         cv2.line(self.img, (int(self.shape[1] / 3), 0), (int(self.shape[1] / 3), self.shape[0]), (255, 0, 0), 1)
         cv2.line(self.img, (int(2 * self.shape[1] / 3), 0), (int(2 * self.shape[1] / 3), self.shape[0]), (255, 0, 0), 1)
         self.circle.draw(self.img)
@@ -145,14 +175,14 @@ class Scene:
             self.show()
             if self.plane.circle_catched(self.circle):
                 print('success')
-            if self.circle.x > self.shape[1] or self.circle.y > self.shape[0]:
+            if self.circle.out_of_scene(self):
                 self.circle = canon.shoot()
         cv2.destroyWindow(self.window_name)
 
 
 if __name__ == '__main__':
     img_shape = (600, 300)
-    canon = Canon(np.radians(-15), 30, 10, (127, 127, 0), 30, 0, img_shape[1] / 2)
+    canon = Canon(np.radians(-15), 30, 10, (127, 127, 0), 10, 0, img_shape[1] / 2)
     plane = Plane(30, 5, (127, 0, 127), img_shape[0] - 2.5, img_shape[1] / 2, 0)
-    scene = Scene(img_shape[1], img_shape[0], canon, plane, vg=1, delay=25)
+    scene = Scene(img_shape[1], img_shape[0], canon, plane, vg=0.1, delay=25)
     scene.run()
