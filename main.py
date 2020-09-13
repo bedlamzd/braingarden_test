@@ -63,11 +63,14 @@ class Tracker:
             self.coords.append((x, y))
 
     def estimate_parabola(self):
-        if len(self.coords) > 15:
-            data = self.data
-            B = polyvander(data[:, 0], 2)
-            C = np.linalg.inv(B.T @ B) @ B.T @ data[:, 1]
-            self.polynom = np.poly1d(C[::-1])
+        if len(self.coords) > 3:
+            try:
+                data = self.data
+                B = polyvander(data[:, 0], 2)
+                C = np.linalg.inv(B.T @ B) @ B.T @ data[:, 1]
+                self.polynom = np.poly1d(C[::-1])
+            except np.linalg.LinAlgError:
+                self.polynom = None
         else:
             self.polynom = None
 
