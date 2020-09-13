@@ -90,8 +90,8 @@ class Plane(Movable):
         super().__init__(x0=x0, y0=y0, vx0=0, vy0=vy0, color=color, scene=scene)
         self.tracker = Tracker(self)
         self.scene.plane = self
-        cv2.createTrackbar('plane pos', self.scene.window_name, int(self.scene.height / 2),
-                           self.scene.height - self.length, lambda pos: self.set_y(pos))
+        # cv2.createTrackbar('plane pos', self.scene.window_name, int(self.scene.height / 2),
+        #                    self.scene.height - self.length, lambda pos: self.set_y(pos))
 
     @property
     def vx(self):
@@ -131,8 +131,8 @@ class Canon(Movable):
         self.circle_color = (0, 0, 255)
         super().__init__(x0=x0, y0=y0, vx0=0, vy0=0, color=color, scene=scene)
         self.scene.canon = self
-        cv2.createTrackbar('canon angle', self.scene.window_name, 0, 15,
-                           lambda angle: self.set_angle(-np.radians(angle)))
+        # cv2.createTrackbar('canon angle', self.scene.window_name, 0, 15,
+        #                    lambda angle: self.set_angle(-np.radians(angle)))
 
     @property
     def vx(self):
