@@ -180,8 +180,8 @@ class Canon(Movable):
 
     def draw(self, img: np.ndarray):
         cv2.drawContours(img, [self.box], -1, self.color, -1)
-        x, y = self.trajectory
-        img[y, x] = self.color
+        # x, y = self.trajectory
+        # img[y, x] = self.color
 
     @property
     def trajectory(self):
