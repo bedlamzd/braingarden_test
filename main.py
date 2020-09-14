@@ -45,8 +45,8 @@ class Circle(Movable):
     def draw(self, img: np.ndarray):
         cv2.circle(img, (int(self.x), int(self.y)), self.radius, self.color, -1)
 
-    def out_of_scene(self, scene: 'Scene'):
-        return (self.x > scene.width or self.x < 0) or (self.y > scene.height or self.y < 0)
+    def out_of_scene(self):
+        return (self.x > self.scene.width or self.x < 0) or (self.y > self.scene.height or self.y < 0)
 
 
 class Tracker:
@@ -156,7 +156,7 @@ class Canon(Movable):
     def shoot(self, angle):
         x0, y0 = self.launch_point()
         self.angle = angle
-        return Circle(
+        Circle(
             radius=int(self.width / 2),
             x0=x0, y0=y0,
             vx0=self.launch_speed * cos(self.angle),
@@ -264,7 +264,7 @@ class Scene:
             self.show()
             if self.plane.circle_catched(self.circle):
                 print('success')
-            if self.circle.out_of_scene(self):
+            if self.circle.out_of_scene():
                 canon.shoot(random() * np.radians(-15))
                 self.plane.tracker.coords = []
         cv2.destroyWindow(self.window_name)
